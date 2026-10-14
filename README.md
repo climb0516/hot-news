@@ -117,13 +117,14 @@ python3 -m http.server 8000     # 浏览器打开 http://localhost:8000
 
 ---
 
-## 部署到 GitHub Pages
+## 自动更新机制
 
-1. 新建仓库并 push 本目录
-2. Settings → Pages → Source 选 `main` 分支根目录
-3. Settings → Actions → General → Workflow permissions 选 **Read and write**（workflow 需要提交 data.json）
-4. Actions 页面手动运行一次 `Hot List Scraper`
+| 触发方式 | 时机 |
+|---------|------|
+| GitHub Actions 定时任务 | 每小时第 7 分钟（避开整点高峰）；GitHub 定时任务在高峰期可能延迟几分钟到十几分钟 |
+| 修改爬虫后 push | 推送到 main 且改动了 `scraper.py` 或 workflow 时，约 1-2 分钟后触发；只改 README / 截图不会触发 |
+| GitHub Actions 手动 dispatch | 按需触发（Actions → Hot List Scraper → Run workflow） |
+| 页面自动刷新 | 已打开的页面每 10 分钟重新读取 `data.json`，也可点右上角刷新按钮 |
 
-> 注意：GitHub Actions 的机器在海外，个别国内平台可能限制海外 IP。如果线上某个来源持续显示「旧数据」，可以改为在本机用 launchd / cron 定时执行 `python3 scraper.py && git commit -am "data" && git push`。
->
-> 仓库 60 天没有提交时，GitHub 会自动停用定时任务。本项目每小时都会提交 data.json，正常情况下不会触发。
+- 某个来源本次抓取失败时沿用上一次的数据，卡片上标注「旧数据」，右侧「来源状态」显示红点
+- 目前 B站热门在 Actions（海外机器）上抓取失败；如果国内来源持续失败，可以改为在本机用 launchd / cron 定时执行 `python3 scraper.py && git commit -am "data" && git push`
