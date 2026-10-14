@@ -162,6 +162,8 @@ def zhihu(limit=50):
 
 def bilibili(limit=30):
     data = fetch_json("https://api.bilibili.com/x/web-interface/ranking/v2?rid=0&type=all")
+    if data.get("code") != 0:
+        raise RuntimeError(f"[Bilibili] ranking code={data.get('code')} message={data.get('message')}")
     return [item(i + 1, x["title"], f"https://www.bilibili.com/video/{x['bvid']}",
                  x["stat"]["view"], hot_text=fmt_hot(x["stat"]["view"]) + "播放",
                  image=x.get("pic", "").replace("http://", "https://"), summary=x.get("desc", ""))
