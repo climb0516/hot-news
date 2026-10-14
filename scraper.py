@@ -161,9 +161,23 @@ def zhihu(limit=50):
     return out
 
 def bilibili(limit=30):
-    data = fetch_json("https://api.bilibili.com/x/web-interface/ranking/v2?rid=0&type=all")
-    if data.get("code") != 0:
-        raise RuntimeError(f"[Bilibili] ranking code={data.get('code')} message={data.get('message')}")
+    # 不带设备标识时容易被风控（code=-352），先拿游客 buvid3/buvid4 作为 Cookie
+    cookie = ""
+    try:
+        spi = fetch_json("https://api.bilibili.com/x/frontend/finger/spi")["data"]
+        cookie = f"buvid3={spi['b_3']}; buvid4={spi['b_4']}"
+    except Exception:
+        pass
+    # 全站排行榜被拦时，降级到综合热门（字段结构相同）
+    errors = []
+    for name, url in (("ranking", "https://api.bilibili.com/x/web-interface/ranking/v2?rid=0&type=all"),
+                      ("popular", f"https://api.bilibili.com/x/web-interface/popular?ps={limit}&pn=1")):
+        data = fetch_json(url, headers={"Cookie": cookie} if cookie else None)
+        if data.get("code") == 0 and (data.get("data") or {}).get("list"):
+            break
+        errors.append(f"{name} code={data.get('code')} message={data.get('message')}")
+    else:
+        raise RuntimeError(f"[Bilibili] {'; '.join(errors)} cookie={'yes' if cookie else 'no'}")
     return [item(i + 1, x["title"], f"https://www.bilibili.com/video/{x['bvid']}",
                  x["stat"]["view"], hot_text=fmt_hot(x["stat"]["view"]) + "播放",
                  image=x.get("pic", "").replace("http://", "https://"), summary=x.get("desc", ""))
