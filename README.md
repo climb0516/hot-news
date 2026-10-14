@@ -2,6 +2,8 @@
 
 > 聚合国内外主流平台热榜（微博、抖音、头条、百度、知乎、B站、澎湃、央视 + BBC、NYT、Guardian、Al Jazeera、Google News 共 13 个来源），自动识别多平台同时上榜的大事
 
+**🌐 在线访问：[https://climb0516.github.io/hot-news/](https://climb0516.github.io/hot-news/)**
+
 页面风格参考 [TechPulse](https://github.com/climb0516/tech-news)。
 
 ---
