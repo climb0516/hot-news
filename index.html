@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta name="referrer" content="no-referrer">
+  <title>HotPulse · 全网热榜</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #09080a;
+      --panel: rgba(24,21,24,0.72);
+      --panel-solid: #151215;
+      --hover: rgba(255,255,255,0.04);
+      --line: rgba(255,255,255,0.07);
+      --line-2: rgba(255,255,255,0.13);
+      --text-1: #efedef;
+      --text-2: #a8a2a8;
+      --text-3: #6d666d;
+      --accent: #ff5a3c;
+      --accent-2: #ffb02e;
+      --grad: linear-gradient(120deg, #ff3d5a 0%, #ff8a2b 60%, #ffc23d 100%);
+      --grid-dot: rgba(255,255,255,0.045);
+      --glow-1: rgba(255,80,60,0.16);
+      --glow-2: rgba(255,170,40,0.08);
+      --rank-1: #ff3b4e;
+      --rank-2: #ff7a2f;
+      --rank-3: #ffb020;
+      --cat-politics: #f87171;
+      --cat-world: #60a5fa;
+      --cat-sports: #34d399;
+      --cat-ent: #f472b6;
+      --cat-finance: #fbbf24;
+      --cat-tech: #a78bfa;
+      --cat-society: #94a3b8;
+      --shadow: 0 0 0 1px var(--line), 0 12px 32px rgba(0,0,0,0.35);
+      --kbd-bg: rgba(255,255,255,0.06);
+    }
+    :root[data-theme="light"] {
+      --bg: #faf9f8;
+      --panel: rgba(255,255,255,0.85);
+      --panel-solid: #ffffff;
+      --hover: rgba(30,10,10,0.035);
+      --line: rgba(30,10,10,0.08);
+      --line-2: rgba(30,10,10,0.15);
+      --text-1: #1a1416;
+      --text-2: #5e5458;
+      --text-3: #978c90;
+      --accent: #e8402a;
+      --accent-2: #d98400;
+      --grid-dot: rgba(30,10,10,0.06);
+      --glow-1: rgba(255,80,60,0.09);
+      --glow-2: rgba(255,170,40,0.06);
+      --cat-politics: #dc2626;
+      --cat-world: #2563eb;
+      --cat-sports: #059669;
+      --cat-ent: #db2777;
+      --cat-finance: #b45309;
+      --cat-tech: #7c3aed;
+      --cat-society: #64748b;
+      --shadow: 0 0 0 1px var(--line), 0 10px 28px rgba(60,20,20,0.07);
+      --kbd-bg: rgba(30,10,10,0.05);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(600px 400px at 15% -5%, var(--glow-1), transparent 70%),
+        radial-gradient(700px 500px at 95% 0%, var(--glow-2), transparent 70%),
+        radial-gradient(circle, var(--grid-dot) 1px, transparent 1px) 0 0 / 22px 22px;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; }
+
+    /* ── Top bar ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      background: color-mix(in srgb, var(--bg) 72%, transparent);
+      backdrop-filter: saturate(180%) blur(18px);
+      -webkit-backdrop-filter: saturate(180%) blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner {
+      max-width: 1400px; margin: 0 auto; padding: 0 24px;
+      height: 60px; display: flex; align-items: center; gap: 20px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; letter-spacing: -0.02em; white-space: nowrap; }
+    .logo-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--grad);
+      display: grid; place-items: center;
+      font-size: 15px;
+      box-shadow: 0 0 20px var(--glow-1);
+    }
+    .logo small { font-weight: 500; font-size: 12px; color: var(--text-3); letter-spacing: 0; }
+    .search {
+      flex: 1; max-width: 520px; margin: 0 auto;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 10px; padding: 0 10px; height: 36px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow-1); }
+    .search svg { color: var(--text-3); flex: none; }
+    .search input {
+      flex: 1; min-width: 0; background: none; border: none; outline: none;
+      color: var(--text-1); font: inherit; font-size: 13.5px;
+    }
+    .search input::placeholder { color: var(--text-3); }
+    kbd {
+      font-family: inherit; font-size: 11px; color: var(--text-3);
+      background: var(--kbd-bg); border: 1px solid var(--line);
+      border-radius: 5px; padding: 1px 6px;
+    }
+    .top-right { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+    .updated { font-size: 12px; color: var(--text-3); display: flex; align-items: center; gap: 6px; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.2); animation: pulse 2s infinite; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); } }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: var(--panel); border: 1px solid var(--line);
+      cursor: pointer; display: grid; place-items: center; color: var(--text-2);
+    }
+    .icon-btn:hover { color: var(--text-1); border-color: var(--line-2); }
+    .icon-btn.spin svg { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Layout ── */
+    .layout {
+      max-width: 1400px; margin: 0 auto; padding: 24px 24px 64px;
+      display: grid; grid-template-columns: 210px minmax(0, 1fr) 300px; gap: 24px;
+      align-items: start;
+    }
+    .side { position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; scrollbar-width: none; }
+    .side::-webkit-scrollbar { display: none; }
+    .side-title { font-size: 11.5px; color: var(--text-3); padding: 0 10px; margin: 4px 0 8px; letter-spacing: .04em; display: flex; justify-content: space-between; }
+    .side-title button { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 11.5px; }
+    .side-title button:hover { color: var(--accent); }
+    .side-group + .side-group { margin-top: 22px; }
+    .nav-item {
+      width: 100%; display: flex; align-items: center; gap: 10px;
+      padding: 7px 10px; border-radius: 8px; border: none; background: none;
+      cursor: pointer; text-align: left; color: var(--text-2); font-size: 13.5px;
+      position: relative;
+    }
+    .nav-item:hover { background: var(--hover); color: var(--text-1); }
+    .nav-item.active { background: var(--panel); color: var(--text-1); box-shadow: inset 0 0 0 1px var(--line); }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 2px; border-radius: 2px; background: var(--grad); }
+    .nav-item.off { opacity: .4; }
+    .nav-item .count { margin-left: auto; font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+    .avatar {
+      width: 20px; height: 20px; border-radius: 6px; flex: none;
+      display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 10px; letter-spacing: -0.03em;
+    }
+    .avatar.xs { font-size: 7.5px; letter-spacing: -0.06em; }
+    .avatar.lg { width: 34px; height: 34px; border-radius: 10px; font-size: 13px; }
+    .fail-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; }
+
+    /* ── Main header ── */
+    .main-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+    .main-head h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+    .main-head h1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .main-head p { font-size: 12.5px; color: var(--text-3); margin-top: 4px; }
+    .tabs { display: flex; gap: 2px; padding: 3px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+    .tab { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 7px; border: none; background: none; cursor: pointer; font-size: 13px; color: var(--text-3); }
+    .tab:hover { color: var(--text-1); }
+    .tab.active { background: var(--hover); color: var(--text-1); box-shadow: inset 0 0 0 1px var(--line-2); }
+
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* ── Board view ── */
+    .boards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
+    .board { display: flex; flex-direction: column; overflow: hidden; }
+    .board-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+    .board-head b { font-size: 14.5px; }
+    .board-head .meta { margin-left: auto; font-size: 11.5px; color: var(--text-3); text-align: right; }
+    .board-head .stale { color: #f59e0b; }
+    .board-list { list-style: none; padding: 6px 6px; }
+    .row {
+      display: flex; align-items: flex-start; gap: 10px; padding: 7px 10px; border-radius: 8px;
+    }
+    .row:hover { background: var(--hover); }
+    .rank { width: 20px; flex: none; text-align: center; font-weight: 700; font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; padding-top: 1px; }
+    .rank.r1 { color: var(--rank-1); } .rank.r2 { color: var(--rank-2); } .rank.r3 { color: var(--rank-3); }
+    .row-title { flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.5; color: var(--text-1); }
+    .row-title:hover { color: var(--accent); }
+    .row-hot { flex: none; font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; padding-top: 2px; }
+    .label {
+      display: inline-block; font-size: 10.5px; line-height: 16px; padding: 0 4px; border-radius: 4px;
+      margin-left: 6px; color: #fff; vertical-align: 1px; font-weight: 600;
+    }
+    .label.l-新 { background: #ff3852; } .label.l-热 { background: #ff8a2b; } .label.l-沸 { background: #f4233c; }
+    .label.l-爆 { background: #bd0000; } .label.l-辟谣 { background: #6b7280; } .label.l-default { background: #8b5cf6; }
+    .board-more { margin: 2px 12px 12px; padding: 7px; border-radius: 8px; border: 1px dashed var(--line-2); background: none; color: var(--text-3); cursor: pointer; font-size: 12.5px; }
+    .board-more:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── Event & feed list ── */
+    .list { display: flex; flex-direction: column; gap: 12px; }
+    .post { padding: 16px 18px; display: flex; gap: 16px; transition: border-color .15s, transform .15s; }
+    .post:hover { border-color: var(--line-2); }
+    .post-body { flex: 1; min-width: 0; }
+    .post-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-3); flex-wrap: wrap; margin-bottom: 6px; }
+    .post-meta b { color: var(--text-2); font-weight: 600; }
+    .post h3 { font-size: 15.5px; font-weight: 650; line-height: 1.5; letter-spacing: -0.005em; }
+    .post h3 a:hover { color: var(--accent); }
+    .post .summary { font-size: 13px; color: var(--text-2); margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .thumb { width: 132px; height: 88px; border-radius: 10px; object-fit: cover; flex: none; background: var(--hover); border: 1px solid var(--line); }
+    .cat-tag { font-size: 11px; padding: 0 7px; line-height: 18px; border-radius: 999px; border: 1px solid currentColor; font-weight: 600; }
+    .heat-badge { font-size: 11px; font-weight: 700; color: #fff; padding: 0 7px; line-height: 18px; border-radius: 999px; background: var(--grad); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2);
+      padding: 3px 8px 3px 4px; border-radius: 999px; background: var(--hover); border: 1px solid var(--line);
+    }
+    .chip:hover { border-color: var(--line-2); color: var(--text-1); }
+    .chip .avatar { width: 16px; height: 16px; border-radius: 50%; font-size: 8.5px; }
+    .chip em { font-style: normal; color: var(--accent); font-weight: 700; }
+    .event-rank { font-size: 26px; font-weight: 800; width: 36px; flex: none; color: var(--text-3); font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .event-rank.top { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .load-more { display: block; margin: 18px auto 0; padding: 9px 22px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel); cursor: pointer; color: var(--text-2); }
+    .load-more:hover { color: var(--text-1); border-color: var(--accent); }
+    .empty { text-align: center; padding: 60px 0; color: var(--text-3); }
+
+    /* ── Right widgets ── */
+    .widget { padding: 14px 16px 12px; }
+    .widget + .widget { margin-top: 16px; }
+    .widget-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .widget-head b { font-size: 14px; }
+    .widget-head small { font-size: 11.5px; color: var(--text-3); }
+    .w-row { display: flex; gap: 10px; padding: 6px 0; font-size: 13px; align-items: flex-start; }
+    .w-row .rank { width: 16px; }
+    .w-row a { flex: 1; min-width: 0; color: var(--text-1); line-height: 1.45; }
+    .w-row a:hover { color: var(--accent); }
+    .w-row small { color: var(--text-3); font-size: 11px; white-space: nowrap; padding-top: 2px; }
+    .bar-row { display: grid; grid-template-columns: 64px 1fr 34px; gap: 10px; align-items: center; font-size: 12px; color: var(--text-2); padding: 4px 0; }
+    .bar { height: 6px; background: var(--hover); border-radius: 3px; overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 3px; }
+    .bar-row span:last-child { text-align: right; color: var(--text-3); font-variant-numeric: tabular-nums; }
+    .status-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 4px 0; color: var(--text-2); }
+    .status-row .t { margin-left: auto; color: var(--text-3); font-size: 11.5px; }
+    .ok { color: #22c55e; } .bad { color: #ef4444; } .warn { color: #f59e0b; }
+
+    .loading { padding: 80px 0; text-align: center; color: var(--text-3); }
+
+    /* ── Responsive ── */
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 190px minmax(0, 1fr); }
+      .right { display: none; }
+    }
+    @media (max-width: 760px) {
+      .topbar-inner { padding: 0 14px; gap: 10px; }
+      .logo small, .updated span, kbd { display: none; }
+      .layout { grid-template-columns: minmax(0, 1fr); padding: 14px 14px 48px; gap: 14px; }
+      .side { position: static; max-height: none; overflow: visible; min-width: 0; }
+      #reload { display: none; }
+      .side-group + .side-group { margin-top: 10px; }
+      .side-title { display: none; }
+      .nav-list { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+      .nav-list::-webkit-scrollbar { display: none; }
+      .nav-item { width: auto; flex: none; white-space: nowrap; border: 1px solid var(--line); padding: 5px 10px; }
+      .nav-item.active::before { display: none; }
+      .nav-item .count { display: none; }
+      .boards { grid-template-columns: 1fr; }
+      .thumb { width: 92px; height: 68px; }
+      .post { padding: 14px; gap: 12px; }
+      .event-rank { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="logo" href="#"><span class="logo-mark">🔥</span>HotPulse <small>全网热榜</small></a>
+      <label class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" placeholder="搜索热点、新闻、平台…" autocomplete="off">
+        <kbd id="kbd">⌘K</kbd>
+      </label>
+      <div class="top-right">
+        <div class="updated"><i class="live-dot"></i><span id="updated">加载中…</span></div>
+        <button class="icon-btn" id="reload" title="重新加载数据">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+        </button>
+        <button class="icon-btn" id="theme" title="切换主题">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="side">
+      <div class="side-group">
+        <div class="side-title">分类</div>
+        <div class="nav-list" id="cats"></div>
+      </div>
+      <div class="side-group">
+        <div class="side-title">国内平台 <button data-toggle="cn">全选</button></div>
+        <div class="nav-list" id="src-cn"></div>
+      </div>
+      <div class="side-group">
+        <div class="side-title">海外媒体 <button data-toggle="intl">全选</button></div>
+        <div class="nav-list" id="src-intl"></div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="main-head">
+        <div>
+          <h1><span>今日</span>热点</h1>
+          <p id="subtitle">—</p>
+        </div>
+        <div class="tabs" id="tabs">
+          <button class="tab" data-view="boards">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1.5"/><rect x="14" y="3" width="7" height="18" rx="1.5"/></svg>平台榜单
+          </button>
+          <button class="tab" data-view="events">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"/></svg>大事聚合
+          </button>
+          <button class="tab" data-view="feed">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>信息流
+          </button>
+        </div>
+      </div>
+      <div id="content"><div class="loading">正在加载热榜…</div></div>
+    </main>
+
+    <aside class="side right">
+      <div class="card widget">
+        <div class="widget-head"><b>🔥 跨平台大事</b><small>多平台同时上榜</small></div>
+        <div id="w-events"></div>
+      </div>
+      <div class="card widget">
+        <div class="widget-head"><b>📊 分类分布</b><small id="w-total"></small></div>
+        <div id="w-cats"></div>
+      </div>
+      <div class="card widget">
+        <div class="widget-head"><b>📡 来源状态</b><small id="w-ok"></small></div>
+        <div id="w-status"></div>
+      </div>
+    </aside>
+  </div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = {
+  get: (k, d) => { try { return JSON.parse(localStorage.getItem('hp.' + k)) ?? d; } catch { return d; } },
+  set: (k, v) => localStorage.setItem('hp.' + k, JSON.stringify(v)),
+};
+
+const PAGE = 40;
+const BOARD_TOP = 10;
+const state = {
+  data: null,
+  view: ['boards', 'events', 'feed'].includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('view', 'boards'),
+  cat: 'all',
+  hidden: new Set(store.get('hidden', [])),   // 被取消勾选的平台 id
+  q: '',
+  page: 1,
+  expanded: new Set(),
+};
+
+// ── 主题 ──
+const applyTheme = t => document.documentElement.dataset.theme = t;
+applyTheme(store.get('theme', 'dark'));
+$('#theme').onclick = () => {
+  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(t); store.set('theme', t);
+};
+
+// ── 工具 ──
+const srcMap = () => Object.fromEntries(state.data.sources.map(s => [s.id, s]));
+const catName = id => (state.data.categories.find(c => c.id === id) || {}).name || '社会';
+const catColor = id => `var(--cat-${id})`;
+const avatar = (s, cls = '') => `<span class="avatar ${cls} ${s.abbr.length > 2 && cls !== 'lg' ? 'xs' : ''}" style="background:${s.color}">${esc(s.abbr)}</span>`;
+const labelHtml = l => l ? `<span class="label l-${['新','热','沸','爆','辟谣'].includes(l) ? l : 'default'}">${esc(l)}</span>` : '';
+const img = (src, cls = 'thumb') => src ? `<img class="${cls}" src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
+
+function timeAgo(iso) {
+  if (!iso) return '';
+  const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (m < 1) return '刚刚';
+  if (m < 60) return `${m} 分钟前`;
+  if (m < 1440) return `${Math.round(m / 60)} 小时前`;
+  return `${Math.round(m / 1440)} 天前`;
+}
+
+function matchQ(...texts) {
+  if (!state.q) return true;
+  const q = state.q.toLowerCase();
+  return texts.some(t => (t || '').toLowerCase().includes(q));
+}
+
+// 当前筛选条件下某平台可见的条目
+function visibleItems(s) {
+  if (state.hidden.has(s.id)) return [];
+  return s.items.filter(it => (state.cat === 'all' || it.category === state.cat) && matchQ(it.title, it.summary, s.name));
+}
+
+// ── 左侧导航 ──
+function renderNav() {
+  const { sources, categories } = state.data;
+  const shown = sources.filter(s => !state.hidden.has(s.id));
+  const catCount = { all: 0 };
+  shown.forEach(s => s.items.forEach(it => {
+    if (!matchQ(it.title, it.summary, s.name)) return;
+    catCount.all++; catCount[it.category] = (catCount[it.category] || 0) + 1;
+  }));
+  $('#cats').innerHTML = [{ id: 'all', name: '全部' }, ...categories].map(c => `
+    <button class="nav-item ${state.cat === c.id ? 'active' : ''}" data-cat="${c.id}">
+      <i class="dot" style="background:${c.id === 'all' ? 'var(--accent)' : catColor(c.id)}"></i>${c.name}
+      <span class="count">${catCount[c.id] || 0}</span>
+    </button>`).join('');
+
+  for (const region of ['cn', 'intl']) {
+    $('#src-' + region).innerHTML = sources.filter(s => s.region === region).map(s => {
+      const n = s.items.filter(it => (state.cat === 'all' || it.category === state.cat) && matchQ(it.title, it.summary, s.name)).length;
+      return `<button class="nav-item ${state.hidden.has(s.id) ? 'off' : ''}" data-src="${s.id}" title="${s.ok ? '' : esc(s.error)}">
+        ${avatar(s)}${esc(s.name)}${s.ok ? '' : '<i class="fail-dot"></i>'}<span class="count">${n}</span>
+      </button>`;
+    }).join('');
+  }
+}
+
+// ── 视图：平台榜单 ──
+function renderBoards() {
+  const cards = state.data.sources.filter(s => !state.hidden.has(s.id)).map(s => {
+    const items = visibleItems(s);
+    if (!items.length && (state.q || state.cat !== 'all')) return '';
+    const open = state.expanded.has(s.id);
+    const list = open ? items : items.slice(0, BOARD_TOP);
+    const status = s.stale ? `<span class="stale">本次抓取失败 · 显示旧数据</span>` : timeAgo(s.updated) + '更新';
+    return `<section class="card board">
+      <div class="board-head">${avatar(s, 'lg')}<div><b>${esc(s.name)}</b></div>
+        <div class="meta">${items.length} 条<br>${status}</div></div>
+      <ol class="board-list">${list.map(it => `
+        <li class="row">
+          <span class="rank ${it.rank <= 3 ? 'r' + it.rank : ''}">${it.rank}</span>
+          <a class="row-title" href="${esc(it.url)}" target="_blank" rel="noopener" title="${esc(it.summary || it.title)}">${esc(it.title)}${labelHtml(it.label)}</a>
+          <span class="row-hot">${esc(it.hot_text)}</span>
+        </li>`).join('') || '<li class="row"><span class="row-title" style="color:var(--text-3)">暂无数据</span></li>'}</ol>
+      ${items.length > BOARD_TOP ? `<button class="board-more" data-expand="${s.id}">${open ? '收起' : `展开全部 ${items.length} 条`}</button>` : ''}
+    </section>`;
+  }).join('');
+  return cards ? `<div class="boards">${cards}</div>` : '<div class="empty">没有符合条件的热点</div>';
+}
+
+// ── 视图：大事聚合 ──
+function filteredEvents() {
+  return state.data.events.filter(e =>
+    e.platforms.some(p => !state.hidden.has(p.source)) &&
+    (state.cat === 'all' || e.category === state.cat) &&
+    matchQ(e.title, e.summary, ...e.platforms.map(p => p.title)));
+}
+
+function renderEvents() {
+  const S = srcMap();
+  const list = filteredEvents();
+  if (!list.length) return '<div class="empty">没有符合条件的事件</div>';
+  const shown = list.slice(0, state.page * PAGE);
+  return `<div class="list">${shown.map((e, i) => {
+    const lead = e.platforms[0];
+    const n = e.platforms.length;
+    return `<article class="card post">
+      <div class="event-rank ${i < 3 ? 'top' : ''}">${String(i + 1).padStart(2, '0')}</div>
+      <div class="post-body">
+        <div class="post-meta">
+          ${n > 1 ? `<span class="heat-badge">${n} 个平台在榜</span>` : ''}
+          <span class="cat-tag" style="color:${catColor(e.category)}">${catName(e.category)}</span>
+        </div>
+        <h3><a href="${esc(lead.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></h3>
+        ${e.summary ? `<p class="summary">${esc(e.summary)}</p>` : ''}
+        <div class="chips">${e.platforms.map(p => {
+          const s = S[p.source];
+          return `<a class="chip" href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title)}">${avatar(s)}${esc(s.name)} <em>#${p.rank}</em></a>`;
+        }).join('')}</div>
+      </div>
+      ${img(e.image)}
+    </article>`;
+  }).join('')}</div>${list.length > shown.length ? `<button class="load-more" id="more">加载更多（剩余 ${list.length - shown.length} 条）</button>` : ''}`;
+}
+
+// ── 视图：信息流（所有平台条目按相对排名交错） ──
+function renderFeed() {
+  const all = [];
+  state.data.sources.forEach(s => {
+    const n = Math.max(s.items.length, 1);
+    visibleItems(s).forEach(it => all.push({ s, it, w: (it.rank - 1) / n }));
+  });
+  all.sort((a, b) => a.w - b.w || a.it.rank - b.it.rank);
+  if (!all.length) return '<div class="empty">没有符合条件的热点</div>';
+  const shown = all.slice(0, state.page * PAGE);
+  return `<div class="list">${shown.map(({ s, it }) => `
+    <article class="card post">
+      ${avatar(s, 'lg')}
+      <div class="post-body">
+        <div class="post-meta">
+          <b>${esc(s.name)}</b><span>#${it.rank}</span>
+          ${it.hot_text ? `<span>· ${esc(it.hot_text)}</span>` : ''}
+          <span class="cat-tag" style="color:${catColor(it.category)}">${catName(it.category)}</span>${labelHtml(it.label)}
+        </div>
+        <h3><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a></h3>
+        ${it.summary && it.summary !== it.title ? `<p class="summary">${esc(it.summary)}</p>` : ''}
+      </div>
+      ${img(it.image)}
+    </article>`).join('')}</div>${all.length > shown.length ? `<button class="load-more" id="more">加载更多（剩余 ${all.length - shown.length} 条）</button>` : ''}`;
+}
+
+// ── 右侧挂件 ──
+function renderWidgets() {
+  const { sources, events, categories } = state.data;
+  const S = srcMap();
+  const multi = events.filter(e => e.platforms.length > 1).slice(0, 10);
+  $('#w-events').innerHTML = multi.map((e, i) => `
+    <div class="w-row"><span class="rank ${i < 3 ? 'r' + (i + 1) : ''}">${i + 1}</span>
+      <a href="${esc(e.platforms[0].url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
+      <small>${e.platforms.length} 平台</small></div>`).join('') || '<div class="w-row"><small>暂无</small></div>';
+
+  const counts = {}; let total = 0;
+  sources.forEach(s => s.items.forEach(it => { counts[it.category] = (counts[it.category] || 0) + 1; total++; }));
+  const max = Math.max(...Object.values(counts), 1);
+  $('#w-total').textContent = `${total} 条`;
+  $('#w-cats').innerHTML = categories.map(c => `
+    <div class="bar-row"><span>${c.name}</span><div class="bar"><i style="width:${(counts[c.id] || 0) / max * 100}%;background:${catColor(c.id)}"></i></div><span>${counts[c.id] || 0}</span></div>`).join('');
+
+  const okN = sources.filter(s => s.ok).length;
+  $('#w-ok').textContent = `${okN}/${sources.length} 正常`;
+  $('#w-status').innerHTML = sources.map(s => `
+    <div class="status-row" title="${esc(s.error)}">${avatar(s)}${esc(s.name)}
+      <span class="t">${s.ok ? `<span class="ok">●</span> ${s.items.length} 条` : `<span class="${s.stale ? 'warn' : 'bad'}">●</span> ${s.stale ? '旧数据' : '失败'}`}</span></div>`).join('');
+}
+
+// ── 渲染入口 ──
+function render() {
+  const { sources, updated } = state.data;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === state.view));
+  renderNav();
+  const html = { boards: renderBoards, events: renderEvents, feed: renderFeed }[state.view]();
+  $('#content').innerHTML = html;
+  const shown = sources.filter(s => !state.hidden.has(s.id));
+  const n = shown.reduce((a, s) => a + visibleItems(s).length, 0);
+  const multi = state.data.events.filter(e => e.platforms.length > 1).length;
+  $('#subtitle').textContent = `${n} 条热点 · ${shown.length} 个平台 · ${multi} 个跨平台事件`;
+  $('#updated').textContent = `更新于 ${new Date(updated).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`;
+}
+
+async function load() {
+  const btn = $('#reload');
+  btn.classList.add('spin');
+  try {
+    const res = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' });
+    state.data = await res.json();
+    renderWidgets();
+    render();
+  } catch (e) {
+    $('#content').innerHTML = `<div class="empty">数据加载失败：${esc(e.message)}<br><small>本地预览需通过 HTTP 服务打开（python3 -m http.server）</small></div>`;
+  } finally {
+    btn.classList.remove('spin');
+  }
+}
+
+// ── 事件绑定 ──
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-cat],[data-src],[data-view],[data-expand],[data-toggle],#more');
+  if (!t) return;
+  if (t.dataset.cat) { state.cat = t.dataset.cat; state.page = 1; }
+  else if (t.dataset.src) {
+    const id = t.dataset.src;
+    state.hidden.has(id) ? state.hidden.delete(id) : state.hidden.add(id);
+    store.set('hidden', [...state.hidden]); state.page = 1;
+  }
+  else if (t.dataset.toggle) {
+    const ids = state.data.sources.filter(s => s.region === t.dataset.toggle).map(s => s.id);
+    const allOn = ids.every(id => !state.hidden.has(id));
+    ids.forEach(id => allOn ? state.hidden.add(id) : state.hidden.delete(id));
+    store.set('hidden', [...state.hidden]); state.page = 1;
+  }
+  else if (t.dataset.view) { state.view = t.dataset.view; store.set('view', state.view); history.replaceState(null, '', '#' + state.view); state.page = 1; }
+  else if (t.dataset.expand) { const id = t.dataset.expand; state.expanded.has(id) ? state.expanded.delete(id) : state.expanded.add(id); }
+  else if (t.id === 'more') { state.page++; }
+  render();
+});
+
+let timer;
+$('#q').addEventListener('input', e => {
+  clearTimeout(timer);
+  timer = setTimeout(() => { state.q = e.target.value.trim(); state.page = 1; render(); }, 150);
+});
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#q').focus(); }
+  if (e.key === 'Escape' && document.activeElement === $('#q')) { $('#q').value = ''; state.q = ''; render(); $('#q').blur(); }
+});
+if (!/Mac/.test(navigator.platform)) $('#kbd').textContent = 'Ctrl K';
+$('#reload').onclick = load;
+
+load();
+setInterval(load, 10 * 60 * 1000);  // 每 10 分钟自动刷新
+</script>
+</body>
+</html>
