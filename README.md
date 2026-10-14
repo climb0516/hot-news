@@ -82,7 +82,7 @@ GitHub Pages（index.html）
 | 今日头条 | hot-board 接口 | 50 | 含封面图 |
 | 百度热搜 | top.baidu.com 接口 | 50 | 跳过置顶条 |
 | 知乎热榜 | api.zhihu.com | 30 | 含问题摘要 |
-| B站热门 | ranking/v2 接口 | 30 | 视频标题不参与事件聚合 |
+| B站热门 | ranking/v2 接口（被风控时降级到综合热门） | 30 | 先取游客 buvid Cookie 规避风控；视频标题不参与事件聚合 |
 | 澎湃新闻 | 首页侧栏热闻接口 | 20 | |
 | 央视新闻 | 新闻列表 jsonp | 20 | 按时间排序 |
 
@@ -127,4 +127,4 @@ python3 -m http.server 8000     # 浏览器打开 http://localhost:8000
 | 页面自动刷新 | 已打开的页面每 10 分钟重新读取 `data.json`，也可点右上角刷新按钮 |
 
 - 某个来源本次抓取失败时沿用上一次的数据，卡片上标注「旧数据」，右侧「来源状态」显示红点
-- 目前 B站热门在 Actions（海外机器）上抓取失败；如果国内来源持续失败，可以改为在本机用 launchd / cron 定时执行 `python3 scraper.py && git commit -am "data" && git push`
+- Actions 运行在海外机器上，如果某个国内来源持续失败，可以改为在本机用 launchd / cron 定时执行 `python3 scraper.py && git commit -am "data" && git push`
