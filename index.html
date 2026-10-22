@@ -266,11 +266,15 @@
     /* ── Responsive ── */
     @media (max-width: 1180px) {
       .layout { grid-template-columns: 190px minmax(0, 1fr); }
-      .right { display: none; }
+      /* 右栏挪到正文下面，挂件横排 */
+      .right { grid-column: 1 / -1; position: static; max-height: none; overflow: visible;
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+      .right .widget + .widget { margin-top: 0; }
     }
     @media (max-width: 760px) {
       .topbar-inner { padding: 0 14px; gap: 10px; }
       .logo small, .updated span, kbd { display: none; }
+      .search { min-width: 0; } .search input { min-width: 0; width: 100%; }          /* 搜索框可缩，右侧按钮不被挤出屏幕 */
       .layout { grid-template-columns: minmax(0, 1fr); padding: 14px 14px 48px; gap: 14px; }
       .side { position: static; max-height: none; overflow: visible; min-width: 0; }
       #reload { display: none; }
@@ -283,9 +287,105 @@
       .nav-item .count { display: none; }
       .boards { grid-template-columns: 1fr; }
       .thumb { width: 92px; height: 68px; }
+      .thumb.ph { font-size: 22px; }
+      .row .mini-thumb { display: none; }
       .post { padding: 14px; gap: 12px; }
       .event-rank { display: none; }
     }
+    /* ── 详情抽屉 + 列表页（通用组件 kit：电脑右侧滑出，手机底部升起；地址 #/item/类型/id、#/list/key） ── */
+    :root { --kit-bg: var(--bg, #0b0a10); --kit-panel: var(--panel, var(--card, rgba(255,255,255,.04))); --kit-line: var(--line, var(--sep, rgba(255,255,255,.08)));
+      --kit-line2: var(--line-2, rgba(255,255,255,.14)); --kit-t1: var(--text-1, #f1eff7); --kit-t2: var(--text-2, #a39fb3); --kit-t3: var(--text-3, #6b677a);
+      --kit-accent: var(--accent, #a3e635); --kit-hover: var(--hover, rgba(255,255,255,.05)); }
+    .kit-mask { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.38); display: none; }
+    .kit-mask.open { display: block; }
+    .kit-sheet { position: absolute; top: 12px; right: 12px; bottom: 12px; width: clamp(440px, 42vw, 620px); max-width: calc(100vw - 24px);
+      display: flex; flex-direction: column; overflow: hidden; color: var(--kit-t1); border-radius: 18px;
+      background: linear-gradient(var(--kit-panel), var(--kit-panel)), var(--kit-bg); box-shadow: 0 0 0 1px var(--kit-line2), 0 24px 60px rgba(0,0,0,.45);
+      animation: kit-in .24s ease-out; }
+    @keyframes kit-in { from { transform: translateX(40px); opacity: 0; } }
+    .kit-x { position: absolute; top: 12px; right: 12px; z-index: 3; width: 32px; height: 32px; border-radius: 50%; border: 0; cursor: pointer;
+      background: rgba(0,0,0,.5); color: #fff; font-size: 15px; display: grid; place-items: center; }
+    .kit-scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+    .kit-cover { aspect-ratio: 16/9; background: var(--kit-hover) center / cover no-repeat; position: relative; }
+    .kit-cover.tall { aspect-ratio: auto; height: 280px; background-size: contain; background-color: #000; }
+    .kit-cover.ph { display: grid; place-items: center; font-size: 56px; aspect-ratio: 16/6; }
+    .kit-head { padding: 18px 20px 4px; display: flex; gap: 14px; align-items: flex-start; }
+    .kit-head .kit-thumb { flex-shrink: 0; width: 64px; height: 64px; border-radius: 14px; background: var(--kit-hover) center / cover no-repeat;
+      display: grid; place-items: center; font-size: 28px; overflow: hidden; }
+    .kit-head .kit-t { flex: 1; min-width: 0; padding-right: 30px; }
+    .kit-cover + .kit-head .kit-t { padding-right: 0; }
+    .kit-head h2 { font-size: 19px; font-weight: 800; line-height: 1.35; letter-spacing: -0.01em; }
+    .kit-sub { color: var(--kit-t2); font-size: 13px; margin-top: 4px; }
+    .kit-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .kit-tags span { font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: var(--kit-hover); color: var(--kit-t2); }
+    .kit-big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .kit-big b { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+    .kit-body { padding: 4px 20px 20px; }
+    .kit-sec { padding-top: 16px; }
+    .kit-sec + .kit-sec { margin-top: 6px; border-top: 1px solid var(--kit-line); }
+    .kit-sec h4 { font-size: 14.5px; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .kit-sec h4 small { font-size: 12px; color: var(--kit-t3); font-weight: 500; }
+    .kit-kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+    .kit-kv div { background: var(--kit-hover); border-radius: 10px; padding: 8px 11px; min-width: 0; }
+    .kit-kv small { display: block; font-size: 11px; color: var(--kit-t3); }
+    .kit-kv b { display: block; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+    .kit-p { font-size: 13.5px; line-height: 1.75; color: var(--kit-t2); white-space: pre-line; }
+    .kit-rows { display: flex; flex-direction: column; }
+    .kit-row { display: flex; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--kit-line); font-size: 13px; text-decoration: none; color: inherit; }
+    .kit-row:first-child { border-top: 0; }
+    .kit-row[data-kit-go], a.kit-row { cursor: pointer; }
+    .kit-row[data-kit-go]:hover .kit-rt, a.kit-row:hover .kit-rt { color: var(--kit-accent); }
+    .kit-row .kit-rt { flex: 1; min-width: 0; line-height: 1.45; }
+    .kit-row .kit-rm { color: var(--kit-t3); font-size: 12px; white-space: nowrap; }
+    .kit-row img, .kit-row .kit-ri { width: 54px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--kit-hover); }
+    .kit-acts { flex-shrink: 0; display: flex; gap: 10px; padding: 12px 20px 16px; border-top: 1px solid var(--kit-line); }
+    .kit-acts a, .kit-acts button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 12px; border-radius: 11px;
+      font: inherit; font-size: 13.5px; font-weight: 700; text-decoration: none; cursor: pointer; border: 1px solid var(--kit-line2); color: var(--kit-t1); background: transparent; }
+    .kit-acts .pri { background: var(--kit-accent); border-color: var(--kit-accent); color: #111; }
+    .kit-acts a:hover, .kit-acts button:hover { filter: brightness(1.08); }
+    /* 列表页 */
+    .kit-lhead { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .kit-back { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--kit-line2); background: transparent; color: var(--kit-t1);
+      font-size: 20px; cursor: pointer; display: grid; place-items: center; flex-shrink: 0; }
+    .kit-back:hover { background: var(--kit-hover); }
+    .kit-lhead h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    .kit-lhead small { color: var(--kit-t3); font-size: 12.5px; margin-left: 2px; }
+    .kit-lbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .kit-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .kit-chips a, .kit-chips button { padding: 5px 12px; border-radius: 8px; background: var(--kit-hover); color: var(--kit-t2); font: inherit; font-size: 13px;
+      font-weight: 600; white-space: nowrap; border: 0; cursor: pointer; text-decoration: none; }
+    .kit-chips .on { background: var(--kit-t1); color: var(--kit-bg); }
+    .kit-chips small { opacity: .6; margin-left: 4px; font-weight: 500; }
+    .kit-sel { padding: 6px 10px; border-radius: 9px; border: 1px solid var(--kit-line2); background: transparent; color: var(--kit-t1); font: inherit; font-size: 12.5px; font-weight: 600; }
+    .kit-sel option { background: var(--kit-bg); }
+    .kit-more { display: block; margin: 16px auto 0; padding: 9px 22px; border-radius: 10px; border: 1px solid var(--kit-line2); background: transparent;
+      color: var(--kit-t1); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .kit-more:hover { background: var(--kit-hover); }
+    .kit-morelink { font-size: 13px; font-weight: 600; color: var(--kit-t2); text-decoration: none; white-space: nowrap; cursor: pointer; }
+    .kit-morelink:hover { color: var(--kit-t1); }
+    [data-kit-item] { cursor: pointer; }
+    @media (max-width: 760px) {
+      .kit-sheet { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-width: none; height: 86vh; border-radius: 18px 18px 0 0; animation: kit-up .26s ease-out; }
+      @keyframes kit-up { from { transform: translateY(30%); opacity: .5; } }
+      .kit-head { padding: 16px 16px 4px; } .kit-body { padding: 4px 16px 18px; } .kit-acts { padding: 10px 16px 16px; }
+      .kit-cover.tall { height: 220px; }
+      .kit-head .kit-thumb { width: 46px; height: 46px; border-radius: 12px; font-size: 22px; }
+      .kit-head h2 { font-size: 17.5px; }
+      .kit-big b { font-size: 24px; }
+      .kit-lhead h2 { font-size: 19px; }
+    }
+    /* 可点开详情的元素 */
+    a.row { color: inherit; }
+    a.row:hover .row-title { color: var(--accent); }
+    .post[data-kit-item] { cursor: pointer; }
+    .post[data-kit-item]:hover h3 { color: var(--accent); }
+    .thumb.ph { display: grid; place-items: center; font-size: 30px; }
+    a.board-more { display: block; text-align: center; }
+    .widget-head .kit-morelink { font-size: 12px; background: none; border: 0; }
+    .row-sum { display: block; font-size: 12px; color: var(--text-3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row .mini-thumb { width: 64px; height: 44px; border-radius: 6px; object-fit: cover; flex: none; background: var(--hover); }
+    .kit-row .avatar { flex: none; }
+    .kit-row .kit-rt b { font-weight: 700; }
   </style>
 </head>
 <body>
@@ -348,7 +448,7 @@
 
     <aside class="side right">
       <div class="card widget">
-        <div class="widget-head"><b>🔥 跨平台大事</b><small>多平台同时上榜</small></div>
+        <div class="widget-head"><b>🔥 跨平台大事</b><button class="kit-morelink" data-view="events">全部 →</button></div>
         <div id="w-events"></div>
       </div>
       <div class="card widget">
@@ -363,11 +463,138 @@
   </div>
 
 <script>
+// ── kit：详情抽屉 + 列表页路由（各站通用，内联在页面里）──
+// 用法：
+//   KIT.item('news', id => ({ title, sub, cover, thumb, tags:[], big, body:'<div class="kit-sec">…</div>', acts:[{text, href, pri}] }))
+//   KIT.list('news', (param, query) => { … 把列表页 HTML 写进容器 … })
+//   条目元素加 data-kit-item="news/<id>" 即可点击打开详情；「查看更多」写成 <a href="#/list/news">
+//   站点首页渲染函数里先调用 KIT.route() —— 返回 true 表示当前是列表页（已渲染），首页不用再渲染
+const KIT = (() => {
+  const items = {}, lists = {};
+  let mask, homeY = 0, fromHome = 0, lastHash = location.hash, onHome = null, listBox = null;
+  const kesc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const parse = h => {
+    const m = (h === undefined ? location.hash : h).match(/^#\/(item|list)\/([^?]+?)(?:\?(.*))?$/);
+    if (!m) return null;
+    const [type, ...rest] = m[2].split('/');
+    return { kind: m[1], type: decodeURIComponent(type), id: rest.map(decodeURIComponent).join('/'), q: new URLSearchParams(m[3] || '') };
+  };
+  function ensure() {
+    if (mask) return;
+    mask = document.createElement('div');
+    mask.className = 'kit-mask';
+    mask.innerHTML = '<div class="kit-sheet" role="dialog" aria-modal="true"></div>';
+    document.body.appendChild(mask);
+    mask.addEventListener('click', e => { if (e.target === mask || e.target.closest('[data-kit-close]')) close(); });
+  }
+  function render(d) {
+    ensure();
+    const cover = d.cover ? `<div class="kit-cover ${d.coverTall ? 'tall' : ''}" style="background-image:url('${kesc(d.cover).replace(/'/g, '%27')}')"></div>`
+      : d.coverIcon ? `<div class="kit-cover ph" style="background:${d.coverBg || 'var(--kit-hover)'}">${d.coverIcon}</div>` : '';
+    const thumb = !d.cover && !d.coverIcon && (d.thumb || d.thumbIcon)
+      ? `<div class="kit-thumb" style="${d.thumb ? `background-image:url('${kesc(d.thumb).replace(/'/g, '%27')}')` : ''}${d.thumbBg ? `;background-color:${d.thumbBg}` : ''}">${d.thumb ? '' : d.thumbIcon}</div>` : '';
+    const acts = (d.acts || []).filter(a => a && (a.href || a.onclick));
+    mask.firstElementChild.innerHTML = `<button class="kit-x" data-kit-close aria-label="关闭">✕</button>
+      <div class="kit-scroll">${cover}
+        <div class="kit-head">${thumb}<div class="kit-t"><h2>${kesc(d.title)}</h2>${d.sub ? `<div class="kit-sub">${d.sub}</div>` : ''}
+          ${(d.tags || []).filter(Boolean).length ? `<div class="kit-tags">${d.tags.filter(Boolean).join('')}</div>` : ''}${d.big ? `<div class="kit-big">${d.big}</div>` : ''}</div></div>
+        <div class="kit-body">${d.body || ''}</div></div>
+      ${acts.length ? `<div class="kit-acts">${acts.map((a, i) => a.href
+        ? `<a class="${a.pri || (i === 0 && acts.length < 3) ? 'pri' : ''}" href="${kesc(a.href)}" ${a.self ? '' : 'target="_blank" rel="noopener"'}>${a.text}</a>`
+        : `<button class="${a.pri ? 'pri' : ''}" data-kit-act="${i}">${a.text}</button>`).join('')}</div>` : ''}`;
+    acts.forEach((a, i) => { if (!a.href) { const b = mask.querySelector(`[data-kit-act="${i}"]`); if (b) b.onclick = a.onclick; } });
+    mask.querySelector('.kit-scroll').scrollTop = 0;
+    mask.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  // 打开详情：写进地址（可分享；浏览器返回 = 关闭）
+  function open(key) {
+    const target = '#/item/' + key;
+    if (location.hash === target) return show(parse(target));
+    ensure();
+    if (parse()?.kind === 'item') history.replaceState(history.state, '', target);
+    else { mask.dataset.base = location.hash; history.pushState({ kit: 1 }, '', target); }
+    lastHash = target;
+    show(parse(target));
+  }
+  function show(r) {
+    const fn = items[r.type];
+    const d = fn && fn(r.id, r.q);
+    if (!d) { close(true); return false; }
+    render(d);
+    return true;
+  }
+  function close(silent) {
+    if (!mask || !mask.classList.contains('open')) return;
+    mask.classList.remove('open');
+    document.body.style.overflow = '';
+    if (!silent && parse()?.kind === 'item') {
+      if (history.state && history.state.kit) history.back();          // 从页面里点开的：退回去
+      else { history.replaceState(null, '', mask.dataset.base || location.pathname + location.search); lastHash = location.hash; }   // 直接打开的分享链接
+    }
+  }
+  // 当前地址是列表页时渲染列表页并返回 true；首页时返回 false
+  function route(box) {
+    if (box) listBox = box;
+    const r = parse();
+    if (r && r.kind === 'list' && lists[r.type]) { lists[r.type](r.id, r.q, listBox); return true; }
+    return false;
+  }
+  // 列表页的公共外壳：返回按钮 + 标题 + 子分类 + 排序
+  function shell({ title, note, chips, sort, sortVal, body, more }) {
+    return `<div class="kit-lhead"><button class="kit-back" data-kit-back title="返回">‹</button><h2>${kesc(title)}</h2>${note ? `<small>${note}</small>` : ''}</div>
+      ${chips || sort ? `<div class="kit-lbar"><div class="kit-chips">${(chips || []).map(c => `<a class="${c.on ? 'on' : ''}" href="${kesc(c.href)}">${kesc(c.text)}${c.count != null ? `<small>${c.count}</small>` : ''}</a>`).join('')}</div>
+        ${sort ? `<select class="kit-sel" data-kit-sort>${sort.map(([v, n]) => `<option value="${kesc(v)}" ${v === sortVal ? 'selected' : ''}>${kesc(n)}</option>`).join('')}</select>` : ''}</div>` : ''}
+      ${body}${more ? `<button class="kit-more" data-kit-more>${more}</button>` : ''}`;
+  }
+  function init(home) {
+    onHome = home;
+    document.addEventListener('click', e => {
+      const t = e.target.closest('[data-kit-item],[data-kit-go],[data-kit-back]');
+      if (!t) return;
+      const inner = e.target.closest('a[href],button,input,select,label,summary');   // 卡片里的其它按钮 / 链接（关注、复制…）优先
+      if (inner && inner !== t && t.contains(inner)) return;
+      e.preventDefault();
+      if (t.dataset.kitBack !== undefined) { fromHome && history.length > fromHome ? history.go(-fromHome) : (location.hash = ''); return; }
+      open(t.dataset.kitItem || t.dataset.kitGo);
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    window.addEventListener('hashchange', () => {
+      const r = parse();
+      let was = parse(lastHash), steps = 1;
+      if (was && was.kind === 'item') {                                 // 从详情离开
+        const base = mask && mask.dataset.base !== undefined ? mask.dataset.base : '';
+        if (location.hash === base) { lastHash = location.hash; close(true); return; }   // 只是关掉详情，底下页面不动
+        was = parse(base); steps = 2;                                   // 在详情里点了别的列表：按详情底下那页算，返回要退两步
+      }
+      lastHash = location.hash;
+      if (r && r.kind === 'item') { show(r); return; }
+      close(true);
+      const wasHome = !was;
+      if (r && r.kind === 'list') {
+        if (wasHome) { homeY = scrollY; fromHome = steps; }
+        onHome && onHome();
+        if (wasHome || was.type !== r.type) scrollTo(0, 0);
+      } else {
+        onHome && onHome();
+        if (fromHome) { scrollTo(0, homeY); fromHome = 0; }
+      }
+    });
+    // 直接打开带 #/item/ 的链接（比如大屏跳过来）：页面数据读完后由站点调用 KIT.boot()
+  }
+  function boot() { const r = parse(); if (r && r.kind === 'item') show(r); }
+  return { item: (t, fn) => (items[t] = fn), list: (t, fn) => (lists[t] = fn), open, close, route, shell, init, boot, parse, esc: kesc,
+    // 小工具：详情里的键值格、段落、关联列表
+    kv: rows => { const r = rows.filter(x => x && x[1] != null && x[1] !== ''); return r.length ? `<div class="kit-kv">${r.map(([k, v]) => `<div><small>${kesc(k)}</small><b title="${kesc(v)}">${kesc(v)}</b></div>`).join('')}</div>` : ''; },
+    sec: (title, html, note) => html ? `<div class="kit-sec"><h4>${title}${note ? `<small>${note}</small>` : ''}</h4>${html}</div>` : '',
+    p: t => t ? `<p class="kit-p">${kesc(t)}</p>` : '',
+  };
+})();
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const store = {
   get: (k, d) => { try { return JSON.parse(localStorage.getItem('hp.' + k)) ?? d; } catch { return d; } },
-  set: (k, v) => localStorage.setItem('hp.' + k, JSON.stringify(v)),
+  set: (k, v) => { try { localStorage.setItem('hp.' + k, JSON.stringify(v)); } catch {} },   // 无痕模式等写不进去时忽略
 };
 
 const PAGE = 40;
@@ -379,7 +606,6 @@ const state = {
   hidden: new Set(store.get('hidden', [])),   // 被取消勾选的平台 id
   q: '',
   page: 1,
-  expanded: new Set(),
 };
 
 // ── 主题 ──
@@ -394,9 +620,20 @@ $('#theme').onclick = () => {
 const srcMap = () => Object.fromEntries(state.data.sources.map(s => [s.id, s]));
 const catName = id => (state.data.categories.find(c => c.id === id) || {}).name || '社会';
 const catColor = id => `var(--cat-${id})`;
+const CAT_ICON = { politics: '🏛', world: '🌍', sports: '⚽', ent: '🎬', finance: '💹', tech: '💡', society: '🏙' };
+const catBg = id => `color-mix(in srgb, var(--cat-${id}) 18%, transparent)`;
 const avatar = (s, cls = '') => `<span class="avatar ${cls} ${s.abbr.length > 2 && cls !== 'lg' ? 'xs' : ''}" style="background:${s.color}">${esc(s.abbr)}</span>`;
 const labelHtml = l => l ? `<span class="label l-${['新','热','沸','爆','辟谣'].includes(l) ? l : 'default'}">${esc(l)}</span>` : '';
-const img = (src, cls = 'thumb') => src ? `<img class="${cls}" src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
+// 图片加载失败：换成同尺寸的分类图标占位，避免卡片高低不齐
+const img = (src, cat, cls = 'thumb') => src ? `<img class="${cls}" src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer" data-cat="${cat || 'society'}" onerror="imgFail(this)">` : '';
+function imgFail(el) {
+  const c = el.dataset.cat, ph = document.createElement('span');
+  ph.className = el.className + ' ph';
+  ph.style.background = catBg(c);
+  ph.textContent = CAT_ICON[c] || '📰';
+  el.replaceWith(ph);
+}
+const short = s => s.name.replace(/(热搜|热榜|热门|新闻)$/, '');   // 「去微博 ↗」按钮用的平台简称
 
 function timeAgo(iso) {
   if (!iso) return '';
@@ -417,6 +654,54 @@ function matchQ(...texts) {
 function visibleItems(s) {
   if (state.hidden.has(s.id)) return [];
   return s.items.filter(it => (state.cat === 'all' || it.category === state.cat) && matchQ(it.title, it.summary, s.name));
+}
+
+// ── 索引：详情地址 #/item/hot/<平台id>/<条目id>、#/item/event/<事件id>（id 由 scraper 按标题 md5 生成） ──
+let IDX = { item: new Map(), event: new Map(), byTitle: new Map() };
+function buildIndex() {
+  const { sources, events } = state.data;
+  IDX = { item: new Map(), event: new Map(), byTitle: new Map() };
+  sources.forEach(s => s.items.forEach(it => {
+    it.id = it.id || 'r' + it.rank;                       // 旧数据没有 id 时退回排名
+    const k = `${s.id}/${it.id}`;
+    if (!IDX.item.has(k)) IDX.item.set(k, { s, it });
+  }));
+  events.forEach((e, i) => {
+    e.id = e.id || 'e' + i;
+    IDX.event.set(e.id, e);
+    e.platforms.forEach(p => IDX.byTitle.set(`${p.source}/${p.title}`, e));
+  });
+}
+const findItem = (sid, title) => { const s = srcMap()[sid]; return s && s.items.find(it => it.title === title); };
+const itemKey = (s, it) => `hot/${s.id}/${it.id}`;
+const kitAttr = key => `href="#/item/${key}" data-kit-item="${key}"`;
+
+// 标题相似度（与 scraper 的事件合并同一算法），给不在事件里的条目找其它平台的同题条目
+const norm = t => t.toLowerCase().replace(/[#【】\[\]「」『』“”"'‘’《》（）()：:，,。.！!？?、\s·|_\-—…]/g, '');
+const bigrams = s => s.length > 1 ? new Set([...Array(s.length - 1)].map((_, i) => s.slice(i, i + 2))) : new Set([s]);
+function similar(a, b) {
+  if (!a || !b) return false;
+  if (a.length >= 4 && b.length >= 4 && (a.includes(b) || b.includes(a))) return true;
+  const ga = bigrams(a), gb = bigrams(b);
+  let inter = 0; ga.forEach(g => gb.has(g) && inter++);
+  const ratio = inter / Math.min(ga.size, gb.size);
+  return (inter >= 3 && ratio >= 0.6) || (inter >= 5 && ratio >= 0.4);
+}
+// 同一件事在各平台的条目：[{ s, it }]，按排名升序
+function samePlatforms(s, it) {
+  const e = IDX.byTitle.get(`${s.id}/${it.title}`);
+  if (e && e.platforms.length > 1) {
+    const S = srcMap();
+    return { e, list: e.platforms.map(p => ({ s: S[p.source], it: findItem(p.source, p.title), p })).filter(x => x.s) };
+  }
+  const n = norm(it.title), list = [{ s, it }];
+  if (s.region !== 'cn') return { e: null, list };          // 英文标题按字母二元组比相似度会误配，海外只看自身
+  state.data.sources.forEach(o => {
+    if (o.id === s.id || o.region !== s.region) return;
+    const hit = o.items.find(x => similar(n, norm(x.title)));
+    if (hit) list.push({ s: o, it: hit });
+  });
+  return { e: null, list: list.sort((a, b) => a.it.rank - b.it.rank) };
 }
 
 // ── 左侧导航 ──
@@ -444,24 +729,26 @@ function renderNav() {
   }
 }
 
+// 榜单行（首页卡片与列表页共用）
+const rowHtml = (s, it, rich) => `
+  <li><a class="row" ${kitAttr(itemKey(s, it))} title="${esc(it.summary || it.title)}">
+    <span class="rank ${it.rank <= 3 ? 'r' + it.rank : ''}">${it.rank}</span>
+    <span class="row-title">${esc(it.title)}${labelHtml(it.label)}${rich && it.summary && it.summary !== it.title ? `<span class="row-sum">${esc(it.summary)}</span>` : ''}</span>
+    ${rich ? img(it.image, it.category, 'mini-thumb') : ''}
+    <span class="row-hot">${esc(it.hot_text)}</span>
+  </a></li>`;
+
 // ── 视图：平台榜单 ──
 function renderBoards() {
   const cards = state.data.sources.filter(s => !state.hidden.has(s.id)).map(s => {
     const items = visibleItems(s);
     if (!items.length && (state.q || state.cat !== 'all')) return '';
-    const open = state.expanded.has(s.id);
-    const list = open ? items : items.slice(0, BOARD_TOP);
     const status = s.stale ? `<span class="stale">本次抓取失败 · 显示旧数据</span>` : timeAgo(s.updated) + '更新';
     return `<section class="card board">
       <div class="board-head">${avatar(s, 'lg')}<div><b>${esc(s.name)}</b></div>
         <div class="meta">${items.length} 条<br>${status}</div></div>
-      <ol class="board-list">${list.map(it => `
-        <li class="row">
-          <span class="rank ${it.rank <= 3 ? 'r' + it.rank : ''}">${it.rank}</span>
-          <a class="row-title" href="${esc(it.url)}" target="_blank" rel="noopener" title="${esc(it.summary || it.title)}">${esc(it.title)}${labelHtml(it.label)}</a>
-          <span class="row-hot">${esc(it.hot_text)}</span>
-        </li>`).join('') || '<li class="row"><span class="row-title" style="color:var(--text-3)">暂无数据</span></li>'}</ol>
-      ${items.length > BOARD_TOP ? `<button class="board-more" data-expand="${s.id}">${open ? '收起' : `展开全部 ${items.length} 条`}</button>` : ''}
+      <ol class="board-list">${items.slice(0, BOARD_TOP).map(it => rowHtml(s, it)).join('') || '<li class="row"><span class="row-title" style="color:var(--text-3)">暂无数据</span></li>'}</ol>
+      ${items.length > BOARD_TOP ? `<a class="board-more" href="#/list/${s.id}${state.cat !== 'all' ? '?cat=' + state.cat : ''}">查看全部 ${items.length} 条 →</a>` : ''}
     </section>`;
   }).join('');
   return cards ? `<div class="boards">${cards}</div>` : '<div class="empty">没有符合条件的热点</div>';
@@ -481,23 +768,22 @@ function renderEvents() {
   if (!list.length) return '<div class="empty">没有符合条件的事件</div>';
   const shown = list.slice(0, state.page * PAGE);
   return `<div class="list">${shown.map((e, i) => {
-    const lead = e.platforms[0];
     const n = e.platforms.length;
-    return `<article class="card post">
+    return `<article class="card post" data-kit-item="event/${e.id}">
       <div class="event-rank ${i < 3 ? 'top' : ''}">${String(i + 1).padStart(2, '0')}</div>
       <div class="post-body">
         <div class="post-meta">
           ${n > 1 ? `<span class="heat-badge">${n} 个平台在榜</span>` : ''}
           <span class="cat-tag" style="color:${catColor(e.category)}">${catName(e.category)}</span>
         </div>
-        <h3><a href="${esc(lead.url)}" target="_blank" rel="noopener">${esc(e.title)}</a></h3>
+        <h3><a ${kitAttr('event/' + e.id)}>${esc(e.title)}</a></h3>
         ${e.summary ? `<p class="summary">${esc(e.summary)}</p>` : ''}
         <div class="chips">${e.platforms.map(p => {
-          const s = S[p.source];
-          return `<a class="chip" href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title)}">${avatar(s)}${esc(s.name)} <em>#${p.rank}</em></a>`;
+          const s = S[p.source], it = findItem(p.source, p.title);
+          return it ? `<a class="chip" ${kitAttr(itemKey(s, it))} title="${esc(p.title)}">${avatar(s)}${esc(s.name)} <em>#${p.rank}</em></a>` : '';
         }).join('')}</div>
       </div>
-      ${img(e.image)}
+      ${img(e.image, e.category)}
     </article>`;
   }).join('')}</div>${list.length > shown.length ? `<button class="load-more" id="more">加载更多（剩余 ${list.length - shown.length} 条）</button>` : ''}`;
 }
@@ -513,7 +799,7 @@ function renderFeed() {
   if (!all.length) return '<div class="empty">没有符合条件的热点</div>';
   const shown = all.slice(0, state.page * PAGE);
   return `<div class="list">${shown.map(({ s, it }) => `
-    <article class="card post">
+    <article class="card post" data-kit-item="${itemKey(s, it)}">
       ${avatar(s, 'lg')}
       <div class="post-body">
         <div class="post-meta">
@@ -521,21 +807,20 @@ function renderFeed() {
           ${it.hot_text ? `<span>· ${esc(it.hot_text)}</span>` : ''}
           <span class="cat-tag" style="color:${catColor(it.category)}">${catName(it.category)}</span>${labelHtml(it.label)}
         </div>
-        <h3><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a></h3>
+        <h3><a ${kitAttr(itemKey(s, it))}>${esc(it.title)}</a></h3>
         ${it.summary && it.summary !== it.title ? `<p class="summary">${esc(it.summary)}</p>` : ''}
       </div>
-      ${img(it.image)}
+      ${img(it.image, it.category)}
     </article>`).join('')}</div>${all.length > shown.length ? `<button class="load-more" id="more">加载更多（剩余 ${all.length - shown.length} 条）</button>` : ''}`;
 }
 
 // ── 右侧挂件 ──
 function renderWidgets() {
   const { sources, events, categories } = state.data;
-  const S = srcMap();
   const multi = events.filter(e => e.platforms.length > 1).slice(0, 10);
   $('#w-events').innerHTML = multi.map((e, i) => `
     <div class="w-row"><span class="rank ${i < 3 ? 'r' + (i + 1) : ''}">${i + 1}</span>
-      <a href="${esc(e.platforms[0].url)}" target="_blank" rel="noopener">${esc(e.title)}</a>
+      <a ${kitAttr('event/' + e.id)}>${esc(e.title)}</a>
       <small>${e.platforms.length} 平台</small></div>`).join('') || '<div class="w-row"><small>暂无</small></div>';
 
   const counts = {}; let total = 0;
@@ -552,28 +837,123 @@ function renderWidgets() {
       <span class="t">${s.ok ? `<span class="ok">●</span> ${s.items.length} 条` : `<span class="${s.stale ? 'warn' : 'bad'}">●</span> ${s.stale ? '旧数据' : '失败'}`}</span></div>`).join('');
 }
 
+// ── 详情（右侧抽屉） ──
+const tag = t => t ? `<span>${esc(t)}</span>` : '';
+const catTag = c => `<span style="color:${catColor(c)}">${catName(c)}</span>`;
+const hotKey = it => it.hot ? '热度' : '时间';
+// 各平台排名行：能找到条目的点开站内详情，找不到的直接外链
+const platRow = (x, cur) => {
+  const t = x.it ? x.it.title : x.p.title, r = x.it ? x.it.rank : x.p.rank;
+  const inner = `${avatar(x.s)}<span class="kit-rt">${cur ? '<b>' : ''}${esc(x.s.name)} · ${esc(t)}${cur ? '（当前）</b>' : ''}</span><span class="kit-rm">#${r}${x.it?.hot_text ? ' · ' + esc(x.it.hot_text) : ''}</span>`;
+  if (cur) return `<div class="kit-row">${inner}</div>`;
+  return x.it ? `<div class="kit-row" data-kit-go="${itemKey(x.s, x.it)}">${inner}</div>`
+    : `<a class="kit-row" href="${esc(x.p.url)}" target="_blank" rel="noopener">${inner}</a>`;
+};
+const linkRows = list => list.length ? `<div class="kit-rows">${list.map(x => `<a class="kit-row" href="${esc(x.url)}" target="_blank" rel="noopener">${avatar(x.s)}<span class="kit-rt">${esc(x.s.name)} · ${esc(x.title)}</span><span class="kit-rm">↗</span></a>`).join('')}</div>` : '';
+// 平台按钮：最多 3 个进底部按钮，其余放正文的「更多来源」
+function platActs(links) {
+  return { acts: links.slice(0, 3).map((x, i) => ({ text: `去${esc(short(x.s))} ↗`, href: x.url, pri: i === 0 })),
+    rest: KIT.sec('更多来源', linkRows(links.slice(3)), '外部链接') };
+}
+const hotRows = list => `<div class="kit-rows">${list.map(({ s, it }) => `<div class="kit-row" data-kit-go="${itemKey(s, it)}">${avatar(s)}<span class="kit-rt">${esc(it.title)}</span><span class="kit-rm">${esc(short(s))} #${it.rank}</span></div>`).join('')}</div>`;
+
+KIT.item('hot', id => {
+  if (!state.data) return null;
+  const hit = IDX.item.get(id); if (!hit) return null;
+  const { s, it } = hit;
+  const { e, list } = samePlatforms(s, it);
+  const others = list.filter(x => x.s !== s);
+  const near = s.items.filter(x => x !== it && Math.abs(x.rank - it.rank) <= 3).map(x => ({ s, it: x }));
+  const sameCat = [];
+  state.data.sources.forEach(o => o !== s && o.items.filter(x => x.category === it.category && x.rank <= 5 && !others.some(y => y.it === x)).slice(0, 1).forEach(x => sameCat.push({ s: o, it: x })));
+  const links = [{ s, url: it.url, title: it.title }, ...others.map(x => ({ s: x.s, url: x.it ? x.it.url : x.p.url, title: x.it ? x.it.title : x.p.title }))].filter(x => x.url);
+  const { acts, rest } = platActs(links);
+  return { title: it.title, sub: `${avatar(s)} ${esc(s.name)} · 第 ${it.rank} 名 · ${timeAgo(s.updated)}更新`,
+    cover: it.image || undefined, thumbIcon: CAT_ICON[it.category] || '📰', thumbBg: catBg(it.category),
+    tags: [catTag(it.category), it.label ? tag(it.label) : '', list.length > 1 ? `<span style="background:var(--grad);color:#fff">${list.length} 个平台在榜</span>` : ''],
+    big: `<b>#${it.rank}</b><span style="color:var(--text-3)">${esc(s.name)}</span>${it.hot_text ? `<b style="font-size:20px">${esc(it.hot_text)}</b><span style="color:var(--text-3)">${hotKey(it)}</span>` : ''}`,
+    body: (it.summary && it.summary !== it.title ? KIT.sec('摘要', KIT.p(it.summary)) : '')
+      + KIT.sec('概况', KIT.kv([['平台', s.name], ['排名', `第 ${it.rank} 名 / ${s.items.length}`], [hotKey(it), it.hot_text], ['分类', catName(it.category)], ['标签', it.label], ['在榜平台', list.length > 1 ? `${list.length} 个` : '']]))
+      + (others.length ? KIT.sec('同一事件在各平台', `<div class="kit-rows">${list.map(x => platRow(x, x.s === s)).join('')}</div>`,
+          e ? `<a class="kit-morelink" href="#/item/event/${e.id}" data-kit-go="event/${e.id}">事件详情 →</a>` : '按标题匹配') : '')
+      + rest
+      + KIT.sec(`${esc(s.name)}前后排名`, hotRows(near), `<a class="kit-morelink" href="#/list/${s.id}">全部 ${s.items.length} 条 →</a>`)
+      + (sameCat.length ? KIT.sec(`其它平台的${catName(it.category)}热点`, hotRows(sameCat.slice(0, 6))) : ''),
+    acts };
+});
+
+KIT.item('event', id => {
+  if (!state.data) return null;
+  const e = IDX.event.get(id); if (!e) return null;
+  const S = srcMap();
+  const list = e.platforms.map(p => ({ s: S[p.source], it: findItem(p.source, p.title), p })).filter(x => x.s);
+  const summary = e.summary || list.map(x => x.it?.summary).find(t => t && t !== e.title) || '';
+  const top = list.reduce((m, x) => x.p.rank < m ? x.p.rank : m, 99);
+  const hottest = list.filter(x => x.it?.hot).sort((a, b) => b.it.hot - a.it.hot)[0];
+  const related = state.data.events.filter(o => o !== e && o.category === e.category).slice(0, 6);
+  const { acts, rest } = platActs(list.map(x => ({ s: x.s, url: x.p.url, title: x.p.title })));
+  return { title: e.title, sub: `${list.length} 个平台在榜 · 最高第 ${top} 名`,
+    cover: e.image || undefined, thumbIcon: CAT_ICON[e.category] || '🔥', thumbBg: catBg(e.category),
+    tags: [catTag(e.category), list.length > 1 ? `<span style="background:var(--grad);color:#fff">跨平台大事</span>` : ''],
+    big: `<b>${list.length}</b><span style="color:var(--text-3)">个平台在榜</span><b style="font-size:20px">#${top}</b><span style="color:var(--text-3)">最高排名</span>`,
+    body: (summary ? KIT.sec('摘要', KIT.p(summary)) : '')
+      + KIT.sec('概况', KIT.kv([['分类', catName(e.category)], ['在榜平台', `${list.length} 个`], ['最高排名', `第 ${top} 名`],
+          ['最高热度', hottest ? `${hottest.it.hot_text}（${short(hottest.s)}）` : ''], ['热度分', e.score != null ? e.score.toFixed(2) : '']]))
+      + KIT.sec('各平台排名', `<div class="kit-rows">${list.map(x => platRow(x)).join('')}</div>`, '点开看各平台条目')
+      + rest
+      + (related.length ? KIT.sec(`同类事件 · ${catName(e.category)}`, `<div class="kit-rows">${related.map(o => `<div class="kit-row" data-kit-go="event/${o.id}"><span class="kit-rt">${esc(o.title)}</span><span class="kit-rm">${o.platforms.length} 平台</span></div>`).join('')}</div>`) : ''),
+    acts };
+});
+
+// ── 列表页：#/list/<平台id>?cat=&sort= ──
+const LPAGE = 30;
+let listN = LPAGE;
+function registerLists() {
+  state.data.sources.forEach(s => KIT.list(s.id, (_, q, box) => {
+    const cat = q.get('cat') || 'all', sort = q.get('sort') || 'rank';
+    let all = s.items.filter(it => cat === 'all' || it.category === cat);
+    if (sort === 'hot') all = [...all].sort((a, b) => (b.hot || 0) - (a.hot || 0));
+    const qs = (c, so) => { const p = new URLSearchParams(); c !== 'all' && p.set('cat', c); so !== 'rank' && p.set('sort', so); const t = p.toString(); return `#/list/${s.id}${t ? '?' + t : ''}`; };
+    const cats = [{ id: 'all', name: '全部' }, ...state.data.categories].map(c => ({ c, n: s.items.filter(it => c.id === 'all' || it.category === c.id).length })).filter(x => x.n);
+    box.innerHTML = KIT.shell({ title: s.name, note: `${s.items.length} 条 · ${s.stale ? '本次抓取失败，显示旧数据' : timeAgo(s.updated) + '更新'}`,
+      chips: cats.map(({ c, n }) => ({ text: c.name, count: n, on: c.id === cat, href: qs(c.id, sort) })),
+      sort: s.items.some(it => it.hot) ? [['rank', '按榜单排名'], ['hot', '按热度']] : null, sortVal: sort,
+      body: `<section class="card board"><ol class="board-list">${all.slice(0, listN).map(it => rowHtml(s, it, true)).join('') || '<li class="row"><span class="row-title" style="color:var(--text-3)">暂无</span></li>'}</ol></section>`,
+      more: all.length > listN ? `加载更多（${listN} / ${all.length}）` : '' });
+    const sel = box.querySelector('[data-kit-sort]');
+    if (sel) sel.onchange = () => { location.hash = qs(cat, sel.value); };
+  }));
+}
+
 // ── 渲染入口 ──
 function render() {
   const { sources, updated } = state.data;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === state.view));
   renderNav();
+  $('#updated').textContent = `更新于 ${new Date(updated).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`;
+  const isList = KIT.route($('#content'));             // #/list/… 列表页
+  $('.main-head').style.display = isList ? 'none' : '';
+  if (isList) return;
   const html = { boards: renderBoards, events: renderEvents, feed: renderFeed }[state.view]();
   $('#content').innerHTML = html;
   const shown = sources.filter(s => !state.hidden.has(s.id));
   const n = shown.reduce((a, s) => a + visibleItems(s).length, 0);
   const multi = state.data.events.filter(e => e.platforms.length > 1).length;
   $('#subtitle').textContent = `${n} 条热点 · ${shown.length} 个平台 · ${multi} 个跨平台事件`;
-  $('#updated').textContent = `更新于 ${new Date(updated).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`;
 }
 
+let booted = false;
 async function load() {
   const btn = $('#reload');
   btn.classList.add('spin');
   try {
     const res = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' });
     state.data = await res.json();
+    buildIndex();
+    registerLists();
     renderWidgets();
     render();
+    if (!booted) { booted = true; KIT.boot(); }          // 直接打开 #/item/… 链接时显示详情
   } catch (e) {
     $('#content').innerHTML = `<div class="empty">数据加载失败：${esc(e.message)}<br><small>本地预览需通过 HTTP 服务打开（python3 -m http.server）</small></div>`;
   } finally {
@@ -581,9 +961,13 @@ async function load() {
   }
 }
 
+// 在列表页里点了左侧筛选 / 视图切换：回到首页再渲染
+const backHome = () => { if (KIT.parse()?.kind === 'list') { location.hash = state.view; return true; } return false; };
+
 // ── 事件绑定 ──
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-cat],[data-src],[data-view],[data-expand],[data-toggle],#more');
+  if (e.target.closest('[data-kit-more]')) { listN += LPAGE; render(); return; }
+  const t = e.target.closest('[data-cat],[data-src],[data-view],[data-toggle],#more');
   if (!t) return;
   if (t.dataset.cat) { state.cat = t.dataset.cat; state.page = 1; }
   else if (t.dataset.src) {
@@ -597,16 +981,18 @@ document.addEventListener('click', e => {
     ids.forEach(id => allOn ? state.hidden.add(id) : state.hidden.delete(id));
     store.set('hidden', [...state.hidden]); state.page = 1;
   }
-  else if (t.dataset.view) { state.view = t.dataset.view; store.set('view', state.view); history.replaceState(null, '', '#' + state.view); state.page = 1; }
-  else if (t.dataset.expand) { const id = t.dataset.expand; state.expanded.has(id) ? state.expanded.delete(id) : state.expanded.add(id); }
+  else if (t.dataset.view) { state.view = t.dataset.view; store.set('view', state.view); state.page = 1;
+    if (!backHome()) history.replaceState(null, '', '#' + state.view); }
   else if (t.id === 'more') { state.page++; }
+  if (backHome()) return;
   render();
 });
+window.addEventListener('hashchange', () => { if (KIT.parse()?.kind !== 'item') listN = LPAGE; }, true);
 
 let timer;
 $('#q').addEventListener('input', e => {
   clearTimeout(timer);
-  timer = setTimeout(() => { state.q = e.target.value.trim(); state.page = 1; render(); }, 150);
+  timer = setTimeout(() => { state.q = e.target.value.trim(); state.page = 1; if (!backHome()) render(); }, 150);
 });
 document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#q').focus(); }
@@ -615,6 +1001,7 @@ document.addEventListener('keydown', e => {
 if (!/Mac/.test(navigator.platform)) $('#kbd').textContent = 'Ctrl K';
 $('#reload').onclick = load;
 
+KIT.init(() => state.data && render());
 load();
 setInterval(load, 10 * 60 * 1000);  // 每 10 分钟自动刷新
 </script>

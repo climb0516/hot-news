@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """HotPulse scraper — 抓取国内外主流平台热榜，输出 data.json。仅依赖 Python 标准库。"""
-import html, json, re, urllib.parse, urllib.request
+import hashlib, html, json, re, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone, timedelta
@@ -64,7 +64,7 @@ def fetch(url, headers=None, data=None, timeout=12):
 def fetch_json(url, **kw):
     return json.loads(fetch(url, **kw))
 
-def clean(text, n=160):
+def clean(text, n=400):
     text = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", text or ""))).strip()
     return (text[:n] + "…") if len(text) > n else text
 
@@ -83,9 +83,14 @@ def fmt_hot(n):
         return f"{n / 1e4:.1f}万"
     return str(n)
 
+def hid(text):
+    # 详情页用的稳定 id：标题的 md5 前 10 位（url 里常带排名参数，会变）
+    return hashlib.md5(text.encode()).hexdigest()[:10]
+
 def item(rank, title, url, hot=0, hot_text=None, label="", image=None, summary="", region="cn"):
     title = clean(title, 120)
     return {
+        "id":       hid(title),
         "rank":     rank,
         "title":    title,
         "url":      url or "",
@@ -133,16 +138,25 @@ def toutiao(limit=50):
             for i, x in enumerate(data.get("data", [])[:limit])]
 
 def baidu(limit=50):
-    data = fetch_json("https://top.baidu.com/api/board?platform=wise&tab=realtime")
-    words = data["data"]["cards"][0]["content"][0]["content"]
+    # PC 版接口带摘要（desc）、配图（img）和热度（hotScore）；拿不到时退回移动版（只有标题）
     tag_map = {"1": "新", "3": "热", "5": "沸"}
+    try:
+        data = fetch_json("https://top.baidu.com/api/board?platform=pc&tab=realtime")
+        words = data["data"]["cards"][0]["content"]
+        if not words or "word" not in words[0]:
+            raise ValueError("pc 结构变化")
+    except Exception:
+        data = fetch_json("https://top.baidu.com/api/board?platform=wise&tab=realtime")
+        words = data["data"]["cards"][0]["content"][0]["content"]
     out = []
     for x in words:
         if x.get("isTop"):
             continue
+        hot = to_int(x.get("hotScore"))
         out.append(item(len(out) + 1, x["word"],
                         "https://www.baidu.com/s?wd=" + urllib.parse.quote(x["word"]),
-                        label=tag_map.get(str(x.get("hotTag", "")), ""), hot_text=""))
+                        hot, label=tag_map.get(str(x.get("hotTag", "")), ""), hot_text=fmt_hot(hot),
+                        image=x.get("img"), summary=x.get("desc", "")))
         if len(out) >= limit:
             break
     return out
@@ -294,6 +308,7 @@ def build_events(sources):
         lead = max(members, key=lambda m: m[3])[1]  # 用权重最高的条目作代表
         score = sum(r["weight"] for r in refs) + 0.6 * (len(refs) - 1)
         events.append({
+            "id":        hid(lead["title"]),
             "title":     lead["title"],
             "category":  lead["category"],
             "image":     next((m[1]["image"] for m in members if m[1]["image"]), None),
